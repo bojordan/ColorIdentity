@@ -28,6 +28,10 @@
   "contributes": {
     "commands": [
       {
+        "command": "colorIdentity.chooseColor",
+        "title": "Color Identity: Choose Color…"
+      },
+      {
         "command": "colorIdentity.applyColors",
         "title": "Color Identity: Apply Colors"
       },

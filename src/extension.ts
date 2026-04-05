@@ -1,9 +1,12 @@
 import * as vscode from 'vscode';
 import { readConfig } from './types';
-import { generateColors } from './colorGenerator';
+import { generateColors, hashToHue } from './colorGenerator';
 import { applyColors, resetColors } from './colorApplier';
+import { showColorPicker } from './colorPicker';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
+
+let statusBarItem: vscode.StatusBarItem;
 
 function getWorkspaceName(): string | undefined {
     const folders = vscode.workspace.workspaceFolders;
@@ -11,6 +14,28 @@ function getWorkspaceName(): string | undefined {
         return folders[0].name;
     }
     return undefined;
+}
+
+function getEffectiveHue(): number {
+    const config = readConfig();
+    if (config.hueOverride !== null) {
+        return config.hueOverride;
+    }
+    const name = getWorkspaceName();
+    return name ? hashToHue(name) : 0;
+}
+
+function updateStatusBar(): void {
+    const config = readConfig();
+    if (!config.enabled) {
+        statusBarItem.text = '$(circle-slash) Color Identity';
+        statusBarItem.tooltip = 'Color Identity is disabled';
+    } else {
+        const hue = getEffectiveHue();
+        const isAuto = config.hueOverride === null;
+        statusBarItem.text = `$(symbol-color) Color Identity`;
+        statusBarItem.tooltip = `Hue: ${hue}° (${isAuto ? 'auto' : 'override'}) — Click to change`;
+    }
 }
 
 async function applyIdentityColors(): Promise<void> {
@@ -27,13 +52,50 @@ async function applyIdentityColors(): Promise<void> {
     const themeKind = vscode.window.activeColorTheme.kind;
     const colors = generateColors(workspaceName, themeKind, config);
     await applyColors(colors);
+    updateStatusBar();
+}
+
+async function setHueOverride(hue: number | null): Promise<void> {
+    const cfg = vscode.workspace.getConfiguration('colorIdentity');
+    await cfg.update('hueOverride', hue, vscode.ConfigurationTarget.Workspace);
 }
 
 // ── Extension Lifecycle ──────────────────────────────────────────────────────
 
 export function activate(context: vscode.ExtensionContext) {
+    // Status bar item — click to open color picker
+    statusBarItem = vscode.window.createStatusBarItem(
+        vscode.StatusBarAlignment.Left,
+        50
+    );
+    statusBarItem.command = 'colorIdentity.chooseColor';
+    statusBarItem.show();
+    context.subscriptions.push(statusBarItem);
+
     // Apply colors on startup
     applyIdentityColors();
+
+    // Command: Choose a color via quick pick
+    context.subscriptions.push(
+        vscode.commands.registerCommand('colorIdentity.chooseColor', async () => {
+            const workspaceName = getWorkspaceName();
+            if (!workspaceName) {
+                vscode.window.showWarningMessage(
+                    'Color Identity: No workspace folder is open.'
+                );
+                return;
+            }
+
+            const currentHue = getEffectiveHue();
+            const result = await showColorPicker(currentHue);
+            if (result === undefined) {
+                return; // dismissed
+            }
+
+            await setHueOverride(result.hue);
+            // Config change listener will auto-apply
+        })
+    );
 
     // Command: Apply / re-apply colors
     context.subscriptions.push(
@@ -58,6 +120,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('colorIdentity.resetColors', async () => {
             await resetColors();
             vscode.window.showInformationMessage('Color Identity: Colors reset.');
+            updateStatusBar();
         })
     );
 
@@ -87,6 +150,7 @@ export function activate(context: vscode.ExtensionContext) {
                     applyIdentityColors();
                 } else {
                     resetColors();
+                    updateStatusBar();
                 }
             }
         })
