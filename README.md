@@ -27,9 +27,27 @@ Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and type
 
 | Command                                        | Description                                |
 | ---------------------------------------------- | ------------------------------------------ |
+| **Color Identity: Choose Color…**              | Pick a color from named presets or enter a custom hue |
 | **Color Identity: Apply Colors**               | Apply or re-apply identity colors          |
 | **Color Identity: Reset Colors**               | Remove all identity colors from workspace  |
 | **Color Identity: Refresh Colors for Current Theme** | Re-derive colors for the active theme |
+
+### Color Picker
+
+The **Choose Color…** command opens a quick pick with 14 named presets (Red,
+Orange, Yellow, Lime, Green, Mint, Teal, Cyan, Blue, Indigo, Purple, Magenta,
+Pink, Rose). Each option shows an **accurate color swatch** — a small PNG icon
+rendered using the actual saturation and lightness from your current theme
+profile. What you see in the picker is exactly what will be applied.
+
+Additional options in the picker:
+- **Automatic** — reset to the hash-based hue derived from your workspace name
+- **Custom Hue…** — enter any value from 0 to 360
+
+### Status Bar
+
+A **Color Identity** indicator appears in the status bar. It shows the current
+hue and whether it's automatic or overridden. Click it to open the color picker.
 
 ## Settings
 

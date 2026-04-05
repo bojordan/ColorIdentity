@@ -79,20 +79,22 @@ A typical TypeScript-based VS Code extension looks like this:
 color-identity/
 ├── .vscode/
 │   ├── launch.json          # Debug configurations (F5 to launch)
-│   ├── tasks.json           # Build tasks
-│   └── extensions.json      # Recommended extensions for contributors
+│   └── tasks.json           # Build tasks
 ├── src/
 │   ├── extension.ts         # Main entry point (activate / deactivate)
-│   ├── commands/             # Command handler modules
-│   ├── services/             # Business logic (color generation, etc.)
-│   └── test/                 # Extension tests
+│   ├── colorGenerator.ts    # HSL color generation & workspace-name hashing
+│   ├── colorApplier.ts      # Reads/writes workbench.colorCustomizations
+│   ├── colorPicker.ts       # Quick pick UI with named presets
+│   ├── swatchGenerator.ts   # Runtime PNG swatch generation for picker icons
+│   ├── types.ts             # Shared interfaces & config reader
+│   └── test/                # Extension tests
+├── docs/                     # Project documentation
 ├── out/                      # Compiled JavaScript (gitignored)
 ├── node_modules/             # Dependencies (gitignored)
 ├── package.json              # Extension manifest + metadata
 ├── tsconfig.json             # TypeScript compiler options
-├── esbuild.js               # Bundler configuration (if using esbuild)
 ├── .vscodeignore             # Files to exclude from the packaged .vsix
-├── CHANGELOG.md
+├── .gitignore
 ├── README.md
 └── LICENSE
 ```
@@ -125,12 +127,20 @@ contributes.
   "contributes": {
     "commands": [
       {
+        "command": "colorIdentity.chooseColor",
+        "title": "Color Identity: Choose Color…"
+      },
+      {
         "command": "colorIdentity.applyColors",
         "title": "Color Identity: Apply Colors"
       },
       {
         "command": "colorIdentity.resetColors",
         "title": "Color Identity: Reset Colors"
+      },
+      {
+        "command": "colorIdentity.refreshColors",
+        "title": "Color Identity: Refresh Colors for Current Theme"
       }
     ],
     "configuration": {
@@ -384,13 +394,45 @@ context.subscriptions.push(disposable);
 ```typescript
 const statusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left,
-    100
+    50
 );
-statusBarItem.text = '$(paintcan) Color Identity';
-statusBarItem.command = 'colorIdentity.applyColors';
+statusBarItem.text = '$(symbol-color) Color Identity';
+statusBarItem.tooltip = 'Hue: 120° (auto) — Click to change';
+statusBarItem.command = 'colorIdentity.chooseColor';
 statusBarItem.show();
 context.subscriptions.push(statusBarItem);
 ```
+
+### Quick Pick with Custom Icons
+
+The VS Code `QuickPick` API supports an `iconPath` property on items. While SVG
+data URIs and ThemeIcon colors are not supported, **PNG files on disk retain
+their color**. This is the technique ColorIdentity uses for its color picker:
+
+```typescript
+// Generate a solid-color PNG swatch at runtime
+import * as zlib from 'zlib';
+
+function createSolidPng(hex: string, size: number): Buffer {
+    // Build raw RGBA pixel data, compress with zlib, assemble PNG chunks
+    // (IHDR → IDAT → IEND) with proper CRC-32 checksums
+    // See src/swatchGenerator.ts for the full implementation
+}
+
+// Use the PNG as a QuickPickItem icon
+const items: vscode.QuickPickItem[] = [{
+    label: 'Green',
+    description: 'hue 120° · #2a4a2f',
+    iconPath: vscode.Uri.file('/path/to/swatch-2a4a2f.png'),
+}];
+```
+
+Swatches are cached in `context.globalStorageUri` and regenerated when the
+theme changes (since the same hue produces different colors per theme profile).
+
+> **Tip:** This zero-dependency PNG approach avoids needing image libraries.
+> Node's built-in `zlib.deflateSync` handles the DEFLATE compression required
+> by the PNG spec.
 
 ---
 
