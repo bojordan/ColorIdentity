@@ -1,36 +1,39 @@
 import * as vscode from 'vscode';
 import { hslToHex } from './colorGenerator';
+import { generateColorSwatch } from './swatchGenerator';
+import { ThemeProfile } from './types';
 
 export interface ColorPreset {
     label: string;
     hue: number;
-    icon: string;
 }
 
 export const COLOR_PRESETS: ColorPreset[] = [
-    { label: 'Red',         hue: 0,   icon: '🔴' },
-    { label: 'Orange',      hue: 30,  icon: '🟠' },
-    { label: 'Yellow',      hue: 55,  icon: '🟡' },
-    { label: 'Lime',        hue: 80,  icon: '🟢' },
-    { label: 'Green',       hue: 120, icon: '🟢' },
-    { label: 'Mint',        hue: 150, icon: '🟩' },
-    { label: 'Teal',        hue: 175, icon: '🩵' },
-    { label: 'Cyan',        hue: 190, icon: '🔵' },
-    { label: 'Blue',        hue: 220, icon: '🔵' },
-    { label: 'Indigo',      hue: 245, icon: '🟣' },
-    { label: 'Purple',      hue: 270, icon: '🟣' },
-    { label: 'Magenta',     hue: 300, icon: '🩷' },
-    { label: 'Pink',        hue: 330, icon: '🩷' },
-    { label: 'Rose',        hue: 350, icon: '🔴' },
+    { label: 'Red',         hue: 0   },
+    { label: 'Orange',      hue: 30  },
+    { label: 'Yellow',      hue: 55  },
+    { label: 'Lime',        hue: 80  },
+    { label: 'Green',       hue: 120 },
+    { label: 'Mint',        hue: 150 },
+    { label: 'Teal',        hue: 175 },
+    { label: 'Cyan',        hue: 190 },
+    { label: 'Blue',        hue: 220 },
+    { label: 'Indigo',      hue: 245 },
+    { label: 'Purple',      hue: 270 },
+    { label: 'Magenta',     hue: 300 },
+    { label: 'Pink',        hue: 330 },
+    { label: 'Rose',        hue: 350 },
 ];
 
 /**
- * Show a quick pick with named color presets plus options for custom hue
- * and resetting to automatic. Returns the chosen hue or null to reset,
+ * Show a quick pick with named color presets that display accurate
+ * theme-aware color swatches. Returns the chosen hue or null to reset,
  * or undefined if the user dismissed the picker.
  */
 export async function showColorPicker(
-    currentHue: number
+    currentHue: number,
+    themeProfile: ThemeProfile,
+    swatchDir: string
 ): Promise<{ hue: number | null } | undefined> {
     type PickItem = vscode.QuickPickItem & { _hue?: number | null; _action?: string };
 
@@ -45,13 +48,20 @@ export async function showColorPicker(
 
     items.push({ label: '', kind: vscode.QuickPickItemKind.Separator });
 
-    // Named color presets with a swatch preview
+    // Named color presets with accurate PNG swatches
     for (const preset of COLOR_PRESETS) {
-        const swatch = hslToHex(preset.hue, 50, 50);
+        const previewHex = hslToHex(
+            preset.hue,
+            themeProfile.baseSaturation,
+            themeProfile.baseLightness
+        );
+        const swatchUri = generateColorSwatch(swatchDir, previewHex);
+
         items.push({
-            label: `${preset.icon}  ${preset.label}`,
-            description: `hue ${preset.hue}°`,
+            label: preset.label,
+            description: `hue ${preset.hue}°  ·  ${previewHex}`,
             detail: currentHue === preset.hue ? '$(check) Currently selected' : undefined,
+            iconPath: swatchUri,
             _hue: preset.hue,
         });
     }

@@ -1,12 +1,15 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { readConfig } from './types';
-import { generateColors, hashToHue } from './colorGenerator';
+import { generateColors, hashToHue, getThemeProfile } from './colorGenerator';
 import { applyColors, resetColors } from './colorApplier';
 import { showColorPicker } from './colorPicker';
+import { clearSwatchCache } from './swatchGenerator';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 let statusBarItem: vscode.StatusBarItem;
+let swatchDir: string;
 
 function getWorkspaceName(): string | undefined {
     const folders = vscode.workspace.workspaceFolders;
@@ -63,6 +66,9 @@ async function setHueOverride(hue: number | null): Promise<void> {
 // ── Extension Lifecycle ──────────────────────────────────────────────────────
 
 export function activate(context: vscode.ExtensionContext) {
+    // Set up swatch cache directory in extension's global storage
+    swatchDir = path.join(context.globalStorageUri.fsPath, 'swatches');
+
     // Status bar item — click to open color picker
     statusBarItem = vscode.window.createStatusBarItem(
         vscode.StatusBarAlignment.Left,
@@ -87,7 +93,9 @@ export function activate(context: vscode.ExtensionContext) {
             }
 
             const currentHue = getEffectiveHue();
-            const result = await showColorPicker(currentHue);
+            const themeKind = vscode.window.activeColorTheme.kind;
+            const themeProfile = getThemeProfile(themeKind);
+            const result = await showColorPicker(currentHue, themeProfile, swatchDir);
             if (result === undefined) {
                 return; // dismissed
             }
@@ -137,6 +145,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Re-apply when the user changes their color theme
     context.subscriptions.push(
         vscode.window.onDidChangeActiveColorTheme(() => {
+            clearSwatchCache(swatchDir); // swatches are theme-specific
             applyIdentityColors();
         })
     );

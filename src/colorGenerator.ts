@@ -17,7 +17,7 @@ export function hashToHue(input: string): number {
 
 // ── Theme Profiles ───────────────────────────────────────────────────────────
 
-function getThemeProfile(kind: vscode.ColorThemeKind): ThemeProfile {
+export function getThemeProfile(kind: vscode.ColorThemeKind): ThemeProfile {
     switch (kind) {
         case vscode.ColorThemeKind.Light:
             return {
