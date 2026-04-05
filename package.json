@@ -1,0 +1,113 @@
+{
+  "name": "color-identity",
+  "displayName": "Color Identity",
+  "description": "Theme-aware workspace coloring — distinguish VS Code windows with colors that harmonize with your active color theme.",
+  "version": "0.1.0",
+  "publisher": "bojordan",
+  "license": "SEE LICENSE IN LICENSE",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Themes",
+    "Other"
+  ],
+  "keywords": [
+    "color",
+    "workspace",
+    "identity",
+    "theme",
+    "title bar",
+    "status bar",
+    "activity bar"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "colorIdentity.applyColors",
+        "title": "Color Identity: Apply Colors"
+      },
+      {
+        "command": "colorIdentity.resetColors",
+        "title": "Color Identity: Reset Colors"
+      },
+      {
+        "command": "colorIdentity.refreshColors",
+        "title": "Color Identity: Refresh Colors for Current Theme"
+      }
+    ],
+    "configuration": {
+      "title": "Color Identity",
+      "properties": {
+        "colorIdentity.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically apply identity colors when a workspace opens."
+        },
+        "colorIdentity.affectTitleBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Colorize the title bar."
+        },
+        "colorIdentity.affectActivityBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Colorize the activity bar."
+        },
+        "colorIdentity.affectStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Colorize the status bar."
+        },
+        "colorIdentity.affectTabBar": {
+          "type": "boolean",
+          "default": false,
+          "description": "Colorize the editor tab bar background."
+        },
+        "colorIdentity.saturationAdjustment": {
+          "type": "number",
+          "default": 0,
+          "minimum": -50,
+          "maximum": 50,
+          "description": "Fine-tune saturation relative to the theme-derived default (-50 to +50)."
+        },
+        "colorIdentity.lightnessAdjustment": {
+          "type": "number",
+          "default": 0,
+          "minimum": -30,
+          "maximum": 30,
+          "description": "Fine-tune lightness relative to the theme-derived default (-30 to +30)."
+        },
+        "colorIdentity.hueOverride": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "default": null,
+          "minimum": 0,
+          "maximum": 360,
+          "description": "Override the auto-detected hue (0–360). Set to null for automatic hue based on workspace name."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.0"
+  }
+}
