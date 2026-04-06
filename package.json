@@ -1,6 +1,6 @@
 {
   "name": "color-identity",
-  "displayName": "Color Identity",
+  "displayName": "ColorIdentity",
   "description": "Theme-aware workspace coloring — distinguish VS Code windows with colors that harmonize with your active color theme.",
   "version": "0.1.0",
   "publisher": "bojordan",
@@ -29,28 +29,38 @@
     "commands": [
       {
         "command": "colorIdentity.chooseColor",
-        "title": "Color Identity: Choose Color…"
+        "title": "ColorIdentity: Choose Color…"
       },
       {
         "command": "colorIdentity.applyColors",
-        "title": "Color Identity: Apply Colors"
+        "title": "ColorIdentity: Apply Colors"
       },
       {
         "command": "colorIdentity.resetColors",
-        "title": "Color Identity: Reset Colors"
+        "title": "ColorIdentity: Reset Colors"
       },
       {
         "command": "colorIdentity.refreshColors",
-        "title": "Color Identity: Refresh Colors for Current Theme"
+        "title": "ColorIdentity: Refresh Colors for Current Theme"
       }
     ],
     "configuration": {
-      "title": "Color Identity",
+      "title": "ColorIdentity",
       "properties": {
         "colorIdentity.enabled": {
           "type": "boolean",
           "default": true,
           "description": "Automatically apply identity colors when a workspace opens."
+        },
+        "colorIdentity.colorMode": {
+          "type": "string",
+          "enum": ["simple", "harmonized"],
+          "default": "harmonized",
+          "enumDescriptions": [
+            "Basic dark/light theme detection with fixed color presets.",
+            "Advanced mode: offers color-shift options that harmonize with your active theme's palette."
+          ],
+          "description": "Color selection mode. 'simple' uses basic theme detection; 'harmonized' generates palette options that integrate with your active theme."
         },
         "colorIdentity.affectTitleBar": {
           "type": "boolean",
@@ -95,6 +105,16 @@
           "minimum": 0,
           "maximum": 360,
           "description": "Override the auto-detected hue (0–360). Set to null for automatic hue based on workspace name."
+        },
+        "colorIdentity.harmonyOffset": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "default": null,
+          "minimum": -180,
+          "maximum": 180,
+          "description": "In harmonized mode, the angular offset from the theme's base hue. Automatically set when picking a color in harmonized mode. The effective hue is recalculated when the theme changes."
         }
       }
     }

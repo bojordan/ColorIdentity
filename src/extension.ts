@@ -5,6 +5,7 @@ import { generateColors, hashToHue, getThemeProfile } from './colorGenerator';
 import { applyColors, resetColors } from './colorApplier';
 import { showColorPicker } from './colorPicker';
 import { clearSwatchCache } from './swatchGenerator';
+import { extractThemeBaseHue } from './themeAnalyzer';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -21,6 +22,14 @@ function getWorkspaceName(): string | undefined {
 
 function getEffectiveHue(): number {
     const config = readConfig();
+
+    // In harmonized mode with a stored offset, recompute from the current
+    // theme's base hue so the color adapts when the theme changes.
+    if (config.colorMode === 'harmonized' && config.harmonyOffset !== null) {
+        const baseHue = extractThemeBaseHue();
+        return ((baseHue + config.harmonyOffset) % 360 + 360) % 360;
+    }
+
     if (config.hueOverride !== null) {
         return config.hueOverride;
     }
@@ -31,13 +40,15 @@ function getEffectiveHue(): number {
 function updateStatusBar(): void {
     const config = readConfig();
     if (!config.enabled) {
-        statusBarItem.text = '$(circle-slash) Color Identity';
-        statusBarItem.tooltip = 'Color Identity is disabled';
+        statusBarItem.text = '$(circle-slash) ColorIdentity';
+        statusBarItem.tooltip = 'ColorIdentity is disabled';
     } else {
         const hue = getEffectiveHue();
-        const isAuto = config.hueOverride === null;
-        statusBarItem.text = `$(symbol-color) Color Identity`;
-        statusBarItem.tooltip = `Hue: ${hue}° (${isAuto ? 'auto' : 'override'}) — Click to change`;
+        const isHarmony = config.colorMode === 'harmonized' && config.harmonyOffset !== null;
+        const isAuto = config.hueOverride === null && !isHarmony;
+        const source = isHarmony ? 'harmony' : isAuto ? 'auto' : 'override';
+        statusBarItem.text = `$(symbol-color) ColorIdentity`;
+        statusBarItem.tooltip = `Hue: ${hue}° (${source}) — Click to change`;
     }
 }
 
@@ -58,9 +69,23 @@ async function applyIdentityColors(): Promise<void> {
     updateStatusBar();
 }
 
-async function setHueOverride(hue: number | null): Promise<void> {
+/**
+ * Persist the color selection. In harmonized mode with a known offset,
+ * we store the offset (so it adapts on theme change) and also store the
+ * current absolute hue as a fallback for when the theme base can't be
+ * detected. When offset is undefined we clear it and just use hueOverride.
+ */
+async function persistColorSelection(
+    hue: number | null,
+    harmonyOffset?: number
+): Promise<void> {
     const cfg = vscode.workspace.getConfiguration('colorIdentity');
     await cfg.update('hueOverride', hue, vscode.ConfigurationTarget.Workspace);
+    await cfg.update(
+        'harmonyOffset',
+        harmonyOffset ?? null,
+        vscode.ConfigurationTarget.Workspace
+    );
 }
 
 // ── Extension Lifecycle ──────────────────────────────────────────────────────
@@ -87,7 +112,7 @@ export function activate(context: vscode.ExtensionContext) {
             const workspaceName = getWorkspaceName();
             if (!workspaceName) {
                 vscode.window.showWarningMessage(
-                    'Color Identity: No workspace folder is open.'
+                    'ColorIdentity: No workspace folder is open.'
                 );
                 return;
             }
@@ -95,12 +120,13 @@ export function activate(context: vscode.ExtensionContext) {
             const currentHue = getEffectiveHue();
             const themeKind = vscode.window.activeColorTheme.kind;
             const themeProfile = getThemeProfile(themeKind);
-            const result = await showColorPicker(currentHue, themeProfile, swatchDir);
+            const config = readConfig();
+            const result = await showColorPicker(currentHue, themeProfile, swatchDir, config.colorMode);
             if (result === undefined) {
                 return; // dismissed
             }
 
-            await setHueOverride(result.hue);
+            await persistColorSelection(result.hue, result.harmonyOffset);
             // Config change listener will auto-apply
         })
     );
@@ -112,14 +138,14 @@ export function activate(context: vscode.ExtensionContext) {
             const workspaceName = getWorkspaceName();
             if (!workspaceName) {
                 vscode.window.showWarningMessage(
-                    'Color Identity: No workspace folder is open.'
+                    'ColorIdentity: No workspace folder is open.'
                 );
                 return;
             }
             const themeKind = vscode.window.activeColorTheme.kind;
             const colors = generateColors(workspaceName, themeKind, config);
             await applyColors(colors);
-            vscode.window.showInformationMessage('Color Identity: Colors applied.');
+            vscode.window.showInformationMessage('ColorIdentity: Colors applied.');
         })
     );
 
@@ -127,7 +153,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('colorIdentity.resetColors', async () => {
             await resetColors();
-            vscode.window.showInformationMessage('Color Identity: Colors reset.');
+            vscode.window.showInformationMessage('ColorIdentity: Colors reset.');
             updateStatusBar();
         })
     );
@@ -137,23 +163,28 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('colorIdentity.refreshColors', async () => {
             await applyIdentityColors();
             vscode.window.showInformationMessage(
-                'Color Identity: Colors refreshed for current theme.'
+                'ColorIdentity: Colors refreshed for current theme.'
             );
         })
     );
 
-    // Re-apply when the user changes their color theme
+    // Re-apply when the theme kind changes (e.g., Dark → Light)
     context.subscriptions.push(
         vscode.window.onDidChangeActiveColorTheme(() => {
-            clearSwatchCache(swatchDir); // swatches are theme-specific
-            applyIdentityColors();
+            clearSwatchCache(swatchDir);
+            setTimeout(() => applyIdentityColors(), 250);
         })
     );
 
-    // Re-apply when our configuration changes
+    // Re-apply when configuration changes — covers both our own settings
+    // AND the workbench color theme (which changes when switching between
+    // themes of the same kind, e.g., Dark Modern → Dracula).
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration((e) => {
-            if (e.affectsConfiguration('colorIdentity')) {
+            if (e.affectsConfiguration('workbench.colorTheme')) {
+                clearSwatchCache(swatchDir);
+                setTimeout(() => applyIdentityColors(), 250);
+            } else if (e.affectsConfiguration('colorIdentity')) {
                 const config = readConfig();
                 if (config.enabled) {
                     applyIdentityColors();

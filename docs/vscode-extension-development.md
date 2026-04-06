@@ -112,7 +112,7 @@ contributes.
 ```jsonc
 {
   "name": "color-identity",
-  "displayName": "Color Identity",
+  "displayName": "ColorIdentity",
   "version": "0.1.0",
   "engines": {
     "vscode": "^1.85.0"          // Minimum VS Code version
@@ -128,23 +128,23 @@ contributes.
     "commands": [
       {
         "command": "colorIdentity.chooseColor",
-        "title": "Color Identity: Choose Color…"
+        "title": "ColorIdentity: Choose Color…"
       },
       {
         "command": "colorIdentity.applyColors",
-        "title": "Color Identity: Apply Colors"
+        "title": "ColorIdentity: Apply Colors"
       },
       {
         "command": "colorIdentity.resetColors",
-        "title": "Color Identity: Reset Colors"
+        "title": "ColorIdentity: Reset Colors"
       },
       {
         "command": "colorIdentity.refreshColors",
-        "title": "Color Identity: Refresh Colors for Current Theme"
+        "title": "ColorIdentity: Refresh Colors for Current Theme"
       }
     ],
     "configuration": {
-      "title": "Color Identity",
+      "title": "ColorIdentity",
       "properties": {
         "colorIdentity.enabled": {
           "type": "boolean",
@@ -396,7 +396,7 @@ const statusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left,
     50
 );
-statusBarItem.text = '$(symbol-color) Color Identity';
+statusBarItem.text = '$(symbol-color) ColorIdentity';
 statusBarItem.tooltip = 'Hue: 120° (auto) — Click to change';
 statusBarItem.command = 'colorIdentity.chooseColor';
 statusBarItem.show();

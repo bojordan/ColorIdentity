@@ -7,9 +7,13 @@ export interface HSL {
     l: number;
 }
 
+/** Color mode: simple (dark/light detection) or harmonized (theme-aware palette) */
+export type ColorMode = 'simple' | 'harmonized';
+
 /** Configuration read from user settings */
 export interface ColorIdentityConfig {
     enabled: boolean;
+    colorMode: ColorMode;
     affectTitleBar: boolean;
     affectActivityBar: boolean;
     affectStatusBar: boolean;
@@ -17,6 +21,7 @@ export interface ColorIdentityConfig {
     saturationAdjustment: number;
     lightnessAdjustment: number;
     hueOverride: number | null;
+    harmonyOffset: number | null;
 }
 
 /** Resolved set of hex colors to apply to the workspace */
@@ -45,6 +50,7 @@ export function readConfig(): ColorIdentityConfig {
     const cfg = vscode.workspace.getConfiguration('colorIdentity');
     return {
         enabled: cfg.get<boolean>('enabled', true),
+        colorMode: cfg.get<ColorMode>('colorMode', 'harmonized'),
         affectTitleBar: cfg.get<boolean>('affectTitleBar', true),
         affectActivityBar: cfg.get<boolean>('affectActivityBar', true),
         affectStatusBar: cfg.get<boolean>('affectStatusBar', true),
@@ -52,5 +58,6 @@ export function readConfig(): ColorIdentityConfig {
         saturationAdjustment: cfg.get<number>('saturationAdjustment', 0),
         lightnessAdjustment: cfg.get<number>('lightnessAdjustment', 0),
         hueOverride: cfg.get<number | null>('hueOverride', null),
+        harmonyOffset: cfg.get<number | null>('harmonyOffset', null),
     };
 }
