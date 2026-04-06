@@ -1,0 +1,27 @@
+<svg width="100%" viewBox="0 0 680 680" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <clipPath id="iconClip">
+    <rect x="80" y="80" width="520" height="520" rx="100"/>
+  </clipPath>
+</defs>
+
+<rect x="80" y="80" width="520" height="520" rx="100" fill="#2b3240"/>
+
+<g clip-path="url(#iconClip)">
+
+  <path d="M340 120 A220 220 0 0 1 530 230 L340 340 Z" fill="#ef9a9a" opacity="0.9"/>
+  <path d="M530 230 A220 220 0 0 1 560 340 L340 340 Z" fill="#ffcc80" opacity="0.9"/>
+  <path d="M560 340 A220 220 0 0 1 530 450 L340 340 Z" fill="#fff176" opacity="0.9"/>
+  <path d="M530 450 A220 220 0 0 1 340 560 L340 340 Z" fill="#80cbc4" opacity="0.9"/>
+  <path d="M340 560 A220 220 0 0 1 150 450 L340 340 Z" fill="#4fc3f7" opacity="0.9"/>
+  <path d="M150 450 A220 220 0 0 1 120 340 L340 340 Z" fill="#7986cb" opacity="0.9"/>
+  <path d="M120 340 A220 220 0 0 1 150 230 L340 340 Z" fill="#ce93d8" opacity="0.9"/>
+  <path d="M150 230 A220 220 0 0 1 340 120 L340 340 Z" fill="#f48fb1" opacity="0.9"/>
+
+  <circle cx="340" cy="340" r="60" fill="#2b3240"/>
+  <circle cx="340" cy="340" r="58" fill="none" stroke="#ffffff" stroke-opacity="0.07" stroke-width="1.5"/>
+
+</g>
+
+<rect x="80" y="80" width="520" height="520" rx="100" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="1.5"/>
+</svg>
