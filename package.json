@@ -2,7 +2,7 @@
   "name": "color-identity",
   "displayName": "ColorIdentity",
   "description": "Theme-aware workspace coloring — distinguish VS Code windows with colors that harmonize with your active color theme.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "publisher": "bojordan",
   "license": "SEE LICENSE IN LICENSE",
   "icon": "images/icon.png",
