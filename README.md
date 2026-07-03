@@ -72,6 +72,7 @@ hue and its source — `auto` (from workspace name), `override` (manual hue), or
 | ------------------------------------ | -------------- | -------------- | -------------------------------------------------------- |
 | `colorIdentity.enabled`             | boolean        | `true`         | Auto-apply identity colors on workspace open             |
 | `colorIdentity.colorMode`           | `"simple"` \| `"harmonized"` | `"harmonized"` | Color selection mode (see below) |
+| `colorIdentity.includeRemoteName`   | boolean        | `true`         | Include the remote/tunnel name in the identity so the same folder on different remotes gets a distinct color |
 | `colorIdentity.affectTitleBar`      | boolean        | `true`         | Colorize the title bar                                   |
 | `colorIdentity.affectActivityBar`   | boolean        | `true`         | Colorize the activity bar                                |
 | `colorIdentity.affectStatusBar`     | boolean        | `true`         | Colorize the status bar                                  |
