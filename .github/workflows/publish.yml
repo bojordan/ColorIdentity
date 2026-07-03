@@ -23,7 +23,7 @@ jobs:
         run: npm run lint
 
       - name: Run tests
-        run: npm run test
+        run: xvfb-run -a npm run test
 
       - name: Compile
         run: npm run compile
