@@ -554,13 +554,55 @@ suite('Extension Test Suite', () => {
 
 ## 9. Packaging & Publishing
 
-### Install the VS Code Extension CLI
+### Automated Publishing via GitHub Actions
+
+The repository includes a GitHub Actions workflow (`.github/workflows/publish.yml`) that
+automates packaging and publishing:
+
+**Workflow:**
+1. Create a release on GitHub (e.g., `v0.1.4`)
+2. The workflow automatically triggers, runs linting + tests, compiles, packages, and publishes
+
+**Setup (one-time):**
+1. Create a Personal Access Token (PAT) in Azure DevOps:
+
+   - Sign in at https://dev.azure.com and select the organization that owns your Marketplace publisher.
+   - Open **Personal access tokens** (profile → "Personal access tokens"), or via direct URLs:
+     - https://dev.azure.com/{org}/_usersSettings/tokens
+     - https://app.vssps.visualstudio.com/profile/pats
+   - Click **New Token** and configure:
+     - **Name:** `VSCE publish - ColorIdentity`
+     - **Organization:** choose the publisher organization
+     - **Expiration:** choose an appropriate lifetime
+     - **Scopes:** enable the **Marketplace** scopes that include *Manage/Publish* rights (label may appear as "Marketplace (Manage)" or similar).
+   - Create the token and **copy it immediately** — it cannot be viewed again.
+
+2. Add the token as a GitHub Actions secret in your repository:
+
+   - Repository → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+   - **Name:** `VSCE_PAT`
+   - **Value:** paste the PAT you copied from Azure DevOps
+   - Click **Add secret**
+
+3. Verify the secret exists under repository Actions secrets (the workflow reads `VSCE_PAT` to publish).
+
+**Troubleshooting:** If you cannot find the Personal Access Tokens page or the Marketplace scope, ensure you are signed into the correct Azure DevOps account and organization that owns the publisher (check https://marketplace.visualstudio.com/manage for publisher membership). If the PAT UI is unavailable, try profile → Security → Personal access tokens or contact your org admin.
+
+**Publishing a new version:**
+1. Update `package.json` version (e.g., `"version": "0.1.4"`)
+2. Create a release on GitHub with tag `v0.1.4`
+3. The workflow runs automatically
+4. Check the "Actions" tab to monitor the build
+
+### Manual Publishing (if needed)
+
+Install the VS Code Extension CLI:
 
 ```bash
 npm install -g @vscode/vsce
 ```
 
-### Package into a `.vsix`
+Package into a `.vsix`:
 
 ```bash
 vsce package
@@ -572,19 +614,13 @@ This creates a `.vsix` file you can share or install locally:
 code --install-extension color-identity-0.1.0.vsix
 ```
 
-### Publish to the Marketplace
-
-1. Create a publisher account at https://marketplace.visualstudio.com/manage
-2. Get a Personal Access Token (PAT) from Azure DevOps
-3. Log in and publish:
+Publish to the Marketplace (requires `VSCE_PAT` environment variable or interactive login):
 
 ```bash
-vsce login <publisher-name>
-vsce publish
+vsce publish --pat <your-pat>
 ```
 
-Your extension will then be installable by anyone via the Extensions sidebar in
-VS Code.
+Your extension will then be installable by anyone via the Extensions sidebar in VS Code.
 
 ---
 
