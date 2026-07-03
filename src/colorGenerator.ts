@@ -5,6 +5,48 @@ import { extractThemeBaseHue } from './themeAnalyzer';
 // ── Hashing ──────────────────────────────────────────────────────────────────
 
 /**
+ * Extract a stable remote name from a workspace folder authority.
+ *
+ * Remote authorities are shaped like `<kind>+<name>` — e.g. `tunnel+my-box`,
+ * `ssh-remote+devhost`, `wsl+Ubuntu`. We return the portion after the first
+ * `+` so the identity reflects the specific machine/tunnel. When there is no
+ * remote (`remoteName` is undefined) we return undefined so local windows are
+ * unaffected.
+ */
+export function extractRemoteName(
+    authority: string | undefined,
+    remoteName: string | undefined
+): string | undefined {
+    if (!remoteName) {
+        return undefined;
+    }
+    if (authority) {
+        const plus = authority.indexOf('+');
+        if (plus >= 0 && plus < authority.length - 1) {
+            return authority.slice(plus + 1);
+        }
+        return authority;
+    }
+    return remoteName;
+}
+
+/**
+ * Compose the identity string used to derive the workspace hue. When a remote
+ * name is present and enabled, it is prefixed so the same folder opened on
+ * different tunnels/hosts gets a distinct color.
+ */
+export function buildIdentityName(
+    workspaceName: string,
+    remoteName: string | undefined,
+    includeRemoteName: boolean
+): string {
+    if (includeRemoteName && remoteName) {
+        return `${remoteName}/${workspaceName}`;
+    }
+    return workspaceName;
+}
+
+/**
  * Deterministic hash of a string → number in [0, 360).
  * Uses djb2 — simple, fast, and produces a well-distributed spread.
  */

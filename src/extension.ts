@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { readConfig } from './types';
-import { generateColors, hashToHue, getThemeProfile } from './colorGenerator';
+import { generateColors, hashToHue, getThemeProfile, buildIdentityName, extractRemoteName } from './colorGenerator';
 import { applyColors, resetColors } from './colorApplier';
 import { showColorPicker } from './colorPicker';
 import { clearSwatchCache } from './swatchGenerator';
@@ -20,6 +20,29 @@ function getWorkspaceName(): string | undefined {
     return undefined;
 }
 
+/** The remote/tunnel name of the current window, or undefined when local. */
+function getRemoteName(): string | undefined {
+    const folders = vscode.workspace.workspaceFolders;
+    const authority =
+        folders && folders.length > 0 ? folders[0].uri.authority : undefined;
+    return extractRemoteName(authority, vscode.env.remoteName);
+}
+
+/**
+ * The full identity string used to derive colors — the workspace name,
+ * optionally prefixed with the remote/tunnel name so the same folder opened
+ * on different tunnels/hosts gets a distinct color. Returns undefined when no
+ * workspace folder is open.
+ */
+function getIdentityName(): string | undefined {
+    const workspaceName = getWorkspaceName();
+    if (!workspaceName) {
+        return undefined;
+    }
+    const config = readConfig();
+    return buildIdentityName(workspaceName, getRemoteName(), config.includeRemoteName);
+}
+
 function getEffectiveHue(): number {
     const config = readConfig();
 
@@ -33,7 +56,7 @@ function getEffectiveHue(): number {
     if (config.hueOverride !== null) {
         return config.hueOverride;
     }
-    const name = getWorkspaceName();
+    const name = getIdentityName();
     return name ? hashToHue(name) : 0;
 }
 
@@ -64,7 +87,7 @@ async function applyIdentityColors(): Promise<void> {
     }
 
     const themeKind = vscode.window.activeColorTheme.kind;
-    const colors = generateColors(workspaceName, themeKind, config);
+    const colors = generateColors(getIdentityName()!, themeKind, config);
     await applyColors(colors);
     updateStatusBar();
 }
@@ -143,7 +166,7 @@ export function activate(context: vscode.ExtensionContext) {
                 return;
             }
             const themeKind = vscode.window.activeColorTheme.kind;
-            const colors = generateColors(workspaceName, themeKind, config);
+            const colors = generateColors(getIdentityName()!, themeKind, config);
             await applyColors(colors);
             vscode.window.showInformationMessage('ColorIdentity: Colors applied.');
         })

@@ -14,6 +14,7 @@ export type ColorMode = 'simple' | 'harmonized';
 export interface ColorIdentityConfig {
     enabled: boolean;
     colorMode: ColorMode;
+    includeRemoteName: boolean;
     affectTitleBar: boolean;
     affectActivityBar: boolean;
     affectStatusBar: boolean;
@@ -51,6 +52,7 @@ export function readConfig(): ColorIdentityConfig {
     return {
         enabled: cfg.get<boolean>('enabled', true),
         colorMode: cfg.get<ColorMode>('colorMode', 'harmonized'),
+        includeRemoteName: cfg.get<boolean>('includeRemoteName', true),
         affectTitleBar: cfg.get<boolean>('affectTitleBar', true),
         affectActivityBar: cfg.get<boolean>('affectActivityBar', true),
         affectStatusBar: cfg.get<boolean>('affectStatusBar', true),

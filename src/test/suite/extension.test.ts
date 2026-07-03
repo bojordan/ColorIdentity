@@ -1,12 +1,13 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { hashToHue, hslToHex, getThemeProfile, generateColors } from '../../colorGenerator';
+import { hashToHue, hslToHex, getThemeProfile, generateColors, buildIdentityName, extractRemoteName } from '../../colorGenerator';
 import { ColorIdentityConfig } from '../../types';
 
 function baseConfig(overrides: Partial<ColorIdentityConfig> = {}): ColorIdentityConfig {
     return {
         enabled: true,
         colorMode: 'simple',
+        includeRemoteName: true,
         affectTitleBar: true,
         affectActivityBar: true,
         affectStatusBar: true,
@@ -71,6 +72,39 @@ suite('Color Generation', () => {
         assert.strictEqual(colors.activityBarBackground, undefined);
         assert.strictEqual(colors.statusBarBackground, undefined);
         assert.strictEqual(colors.tabsBackground, undefined);
+    });
+});
+
+suite('Remote Identity', () => {
+    test('extractRemoteName returns undefined when local', () => {
+        assert.strictEqual(extractRemoteName(undefined, undefined), undefined);
+        assert.strictEqual(extractRemoteName('tunnel+my-box', undefined), undefined);
+    });
+
+    test('extractRemoteName parses the name after the "+" separator', () => {
+        assert.strictEqual(extractRemoteName('tunnel+my-box', 'tunnel'), 'my-box');
+        assert.strictEqual(extractRemoteName('ssh-remote+devhost', 'ssh-remote'), 'devhost');
+        assert.strictEqual(extractRemoteName('wsl+Ubuntu', 'wsl'), 'Ubuntu');
+    });
+
+    test('extractRemoteName falls back to remoteName without an authority', () => {
+        assert.strictEqual(extractRemoteName(undefined, 'tunnel'), 'tunnel');
+        assert.strictEqual(extractRemoteName('codespaces', 'codespaces'), 'codespaces');
+    });
+
+    test('buildIdentityName prefixes the remote when enabled', () => {
+        assert.strictEqual(buildIdentityName('proj', 'my-box', true), 'my-box/proj');
+    });
+
+    test('buildIdentityName ignores the remote when disabled or absent', () => {
+        assert.strictEqual(buildIdentityName('proj', 'my-box', false), 'proj');
+        assert.strictEqual(buildIdentityName('proj', undefined, true), 'proj');
+    });
+
+    test('remote name changes the derived hue', () => {
+        const local = hashToHue(buildIdentityName('proj', undefined, true));
+        const remote = hashToHue(buildIdentityName('proj', 'my-box', true));
+        assert.notStrictEqual(local, remote);
     });
 });
 

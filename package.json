@@ -67,6 +67,11 @@
           ],
           "description": "Color selection mode. 'simple' uses basic theme detection; 'harmonized' generates palette options that integrate with your active theme."
         },
+        "colorIdentity.includeRemoteName": {
+          "type": "boolean",
+          "default": true,
+          "description": "When connected to a remote (tunnel, SSH, WSL, dev container), include the remote/tunnel name in the color identity so the same folder opened on different remotes gets a distinct color. Only affects automatic (name-based) hue selection."
+        },
         "colorIdentity.affectTitleBar": {
           "type": "boolean",
           "default": true,
