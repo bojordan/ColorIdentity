@@ -566,8 +566,9 @@ automates packaging and publishing:
 **Setup (one-time):**
 1. Create a Personal Access Token (PAT) in Azure DevOps:
 
-   - Sign in at https://dev.azure.com and select the organization that owns your Marketplace publisher.
-   - Open **Personal access tokens** (profile → "Personal access tokens"), or via direct URLs:
+   - Sign in to the Azure DevOps organization that owns your Marketplace publisher.
+   - **If the `dev.azure.com` token URLs don't work**, sign in via the legacy org URL instead — for the `bojordan` publisher this is http://bojordan.visualstudio.com — and open **User settings (top-right) → Personal access tokens**.
+   - Other URLs that may work depending on your account:
      - https://dev.azure.com/{org}/_usersSettings/tokens
      - https://app.vssps.visualstudio.com/profile/pats
    - Click **New Token** and configure:
@@ -586,7 +587,7 @@ automates packaging and publishing:
 
 3. Verify the secret exists under repository Actions secrets (the workflow reads `VSCE_PAT` to publish).
 
-**Troubleshooting:** If you cannot find the Personal Access Tokens page or the Marketplace scope, ensure you are signed into the correct Azure DevOps account and organization that owns the publisher (check https://marketplace.visualstudio.com/manage for publisher membership). If the PAT UI is unavailable, try profile → Security → Personal access tokens or contact your org admin.
+**Troubleshooting:** If the `dev.azure.com` Personal Access Tokens pages don't load or you can't find the Marketplace scope, sign in through the legacy organization URL — `http://{org}.visualstudio.com` (e.g. http://bojordan.visualstudio.com) — and open **User settings → Personal access tokens** from there. Also ensure you are signed into the correct account and that it has publisher membership (check https://marketplace.visualstudio.com/manage).
 
 **Publishing a new version:**
 1. Update `package.json` version (e.g., `"version": "0.1.4"`)
