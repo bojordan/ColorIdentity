@@ -6,6 +6,7 @@ import { applyColors, resetColors } from './colorApplier';
 import { showColorPicker } from './colorPicker';
 import { clearSwatchCache } from './swatchGenerator';
 import { extractThemeBaseHue } from './themeAnalyzer';
+import { checkModernUi, runModernUiCommand, MODERN_UI_SETTING } from './modernUiCheck';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -129,6 +130,9 @@ export function activate(context: vscode.ExtensionContext) {
     // Apply colors on startup
     applyIdentityColors();
 
+    // Warn if modernUI is swallowing the colors we just applied
+    checkModernUi(context);
+
     // Command: Choose a color via quick pick
     context.subscriptions.push(
         vscode.commands.registerCommand('colorIdentity.chooseColor', async () => {
@@ -191,6 +195,13 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
+    // Command: Check / disable the modernUI experiment
+    context.subscriptions.push(
+        vscode.commands.registerCommand('colorIdentity.checkModernUI', () =>
+            runModernUiCommand(context)
+        )
+    );
+
     // Re-apply when the theme kind changes (e.g., Dark → Light)
     context.subscriptions.push(
         vscode.window.onDidChangeActiveColorTheme(() => {
@@ -204,6 +215,9 @@ export function activate(context: vscode.ExtensionContext) {
     // themes of the same kind, e.g., Dark Modern → Dracula).
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration((e) => {
+            if (e.affectsConfiguration(MODERN_UI_SETTING)) {
+                checkModernUi(context);
+            }
             if (e.affectsConfiguration('workbench.colorTheme')) {
                 clearSwatchCache(swatchDir);
                 setTimeout(() => applyIdentityColors(), 250);

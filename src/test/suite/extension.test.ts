@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { hashToHue, hslToHex, getThemeProfile, generateColors, buildIdentityName, extractRemoteName } from '../../colorGenerator';
+import { shouldNotifyModernUi, MODERN_UI_SETTING } from '../../modernUiCheck';
 import { ColorIdentityConfig } from '../../types';
 
 function baseConfig(overrides: Partial<ColorIdentityConfig> = {}): ColorIdentityConfig {
@@ -125,9 +126,57 @@ suite('Extension Activation', () => {
             'colorIdentity.applyColors',
             'colorIdentity.resetColors',
             'colorIdentity.refreshColors',
+            'colorIdentity.checkModernUI',
         ];
         for (const cmd of expected) {
             assert.ok(commands.includes(cmd), `Missing command: ${cmd}`);
         }
+    });
+});
+
+suite('Modern UI Compatibility', () => {
+    test('notifies when modernUI is on and nothing suppresses it', () => {
+        assert.strictEqual(
+            shouldNotifyModernUi({
+                modernUiEnabled: true,
+                checkEnabled: true,
+                dismissed: false,
+            }),
+            true
+        );
+    });
+
+    test('stays silent when modernUI is off', () => {
+        assert.strictEqual(
+            shouldNotifyModernUi({
+                modernUiEnabled: false,
+                checkEnabled: true,
+                dismissed: false,
+            }),
+            false
+        );
+    });
+
+    test('stays silent when the check is disabled or previously dismissed', () => {
+        assert.strictEqual(
+            shouldNotifyModernUi({
+                modernUiEnabled: true,
+                checkEnabled: false,
+                dismissed: false,
+            }),
+            false
+        );
+        assert.strictEqual(
+            shouldNotifyModernUi({
+                modernUiEnabled: true,
+                checkEnabled: true,
+                dismissed: true,
+            }),
+            false
+        );
+    });
+
+    test('watches the setting VS Code actually uses', () => {
+        assert.strictEqual(MODERN_UI_SETTING, 'workbench.experimental.modernUI');
     });
 });
