@@ -2,22 +2,46 @@ name: Publish to VS Code Marketplace
 
 on:
   release:
-    types: [created]
+    types: [published]
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
+      - name: Resolve version from release tag
+        id: version
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          VERSION="${TAG#v}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tag '$TAG' is not a vX.Y.Z semver tag."
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "vsix=color-identity-$VERSION.vsix" >> "$GITHUB_OUTPUT"
+
       - name: Install dependencies
         run: npm ci
+
+      # The release tag is the source of truth; package.json is only the
+      # input vsce reads, so sync it rather than trusting a manual bump.
+      - name: Sync package.json to the release version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: npm version "$VERSION" --no-git-tag-version --allow-same-version
 
       - name: Run linter
         run: npm run lint
@@ -32,7 +56,19 @@ jobs:
         run: npm install -g @vscode/vsce
 
       - name: Package extension
-        run: vsce package
+        env:
+          VSIX: ${{ steps.version.outputs.vsix }}
+        run: vsce package --out "$VSIX"
 
       - name: Publish to marketplace
-        run: vsce publish --pat ${{ secrets.VSCE_PAT }}
+        env:
+          VSIX: ${{ steps.version.outputs.vsix }}
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: vsce publish --packagePath "$VSIX"
+
+      - name: Attach VSIX to the release
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          VSIX: ${{ steps.version.outputs.vsix }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "$TAG" "$VSIX" --clobber
