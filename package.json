@@ -47,6 +47,10 @@
       {
         "command": "colorIdentity.refreshColors",
         "title": "ColorIdentity: Refresh Colors for Current Theme"
+      },
+      {
+        "command": "colorIdentity.checkModernUI",
+        "title": "ColorIdentity: Check Modern UI Compatibility"
       }
     ],
     "configuration": {
@@ -74,6 +78,11 @@
           "type": "boolean",
           "default": true,
           "description": "When connected to a remote (tunnel, SSH, WSL, dev container), include the remote/tunnel name in the color identity so the same folder opened on different remotes gets a distinct color. Only affects automatic (name-based) hue selection."
+        },
+        "colorIdentity.checkModernUI": {
+          "type": "boolean",
+          "default": true,
+          "description": "Warn when VS Code's experimental Modern UI is enabled, since it ignores the colors this extension applies, and offer to turn it off."
         },
         "colorIdentity.affectTitleBar": {
           "type": "boolean",
