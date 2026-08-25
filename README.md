@@ -45,7 +45,6 @@ Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and type
 | **ColorIdentity: Apply Colors**               | Apply or re-apply identity colors          |
 | **ColorIdentity: Reset Colors**               | Remove all identity colors from workspace  |
 | **ColorIdentity: Refresh Colors for Current Theme** | Re-derive colors for the active theme |
-| **ColorIdentity: Check Modern UI Compatibility** | Check `workbench.experimental.modernUI` and offer to turn it off |
 
 ### Color Picker
 
@@ -82,19 +81,6 @@ hue and its source — `auto` (from workspace name), `override` (manual hue), or
 | `colorIdentity.lightnessAdjustment` | number         | `0`            | Fine-tune lightness (-30 to +30)                         |
 | `colorIdentity.hueOverride`         | number \| null | `null`         | Fixed hue (0–360); null = automatic                      |
 | `colorIdentity.harmonyOffset`       | number \| null | `null`         | Offset from theme base hue; set automatically by the picker in harmonized mode |
-| `colorIdentity.checkModernUI`       | boolean        | `true`         | Warn when VS Code's experimental Modern UI is enabled and offer to turn it off |
-
-### Modern UI
-
-VS Code's `workbench.experimental.modernUI` shell ignores the `titleBar.*`,
-`activityBar.*` and `statusBar.*` color tokens, so ColorIdentity's colors are
-written but never rendered. When the setting is on, ColorIdentity offers to turn
-it off for you (a window reload applies the change). Run **ColorIdentity: Check
-Modern UI Compatibility** to re-check at any time, or set
-`colorIdentity.checkModernUI` to `false` to silence the notice.
-
-Upstream tracking: [microsoft/vscode#325250](https://github.com/microsoft/vscode/issues/325250),
-[johnpapa/vscode-peacock#652](https://github.com/johnpapa/vscode-peacock/issues/652)
 
 ### How `hueOverride` and `harmonyOffset` interact
 
